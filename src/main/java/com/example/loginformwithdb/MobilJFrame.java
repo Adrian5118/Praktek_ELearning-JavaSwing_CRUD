@@ -36,7 +36,7 @@ public class MobilJFrame extends javax.swing.JFrame {
         reloadList();
         
         // Hide add car panel
-        this.jTabbedPane1.remove(2);
+        this.jTabbedPane1.removeTabAt(2);
         this.tambahMobil.setVisible(false);
     }
 
@@ -55,6 +55,7 @@ public class MobilJFrame extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         daftarMobil = new javax.swing.JList<>();
         addButton = new javax.swing.JButton();
+        removeButton = new javax.swing.JButton();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         dataMobil = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
@@ -141,6 +142,13 @@ public class MobilJFrame extends javax.swing.JFrame {
             }
         });
 
+        removeButton.setText("Hapus");
+        removeButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                removeButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -152,7 +160,9 @@ public class MobilJFrame extends javax.swing.JFrame {
                     .addComponent(jPanel2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(addButton)
-                        .addGap(0, 128, Short.MAX_VALUE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(removeButton)
+                        .addGap(0, 54, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -163,7 +173,9 @@ public class MobilJFrame extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 345, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(addButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(addButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(removeButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
 
@@ -212,7 +224,7 @@ public class MobilJFrame extends javax.swing.JFrame {
                             .addComponent(data_Brand)
                             .addComponent(data_Nama)
                             .addComponent(data_ID))))
-                .addContainerGap(238, Short.MAX_VALUE))
+                .addContainerGap(234, Short.MAX_VALUE))
         );
         dataMobilLayout.setVerticalGroup(
             dataMobilLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -325,7 +337,7 @@ public class MobilJFrame extends javax.swing.JFrame {
                                 .addComponent(confirmEditButton, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(restoreEditButton, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(0, 115, Short.MAX_VALUE)))
+                        .addGap(0, 111, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         editMobilLayout.setVerticalGroup(
@@ -433,7 +445,7 @@ public class MobilJFrame extends javax.swing.JFrame {
                         .addGroup(tambahMobilLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel14)
                             .addComponent(confirmAddButton, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(0, 252, Short.MAX_VALUE)))
+                        .addGap(0, 248, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         tambahMobilLayout.setVerticalGroup(
@@ -555,7 +567,21 @@ public class MobilJFrame extends javax.swing.JFrame {
 
     private void confirmAddButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_confirmAddButtonActionPerformed
         // TODO add your handling code here:
+        insertNewMobil(
+                Integer.parseInt(add_ID.getText()),
+                add_Nama.getText(),
+                add_Brand.getText(),
+                add_Plat.getText(),
+                add_Warna.getText()
+        );
     }//GEN-LAST:event_confirmAddButtonActionPerformed
+
+    private void removeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeButtonActionPerformed
+        // TODO add your handling code here:
+        dropMobil(selectedMobil.id);
+        reloadList();
+        
+    }//GEN-LAST:event_removeButtonActionPerformed
 
     /**
      * @param args the command line arguments
@@ -611,10 +637,40 @@ public class MobilJFrame extends javax.swing.JFrame {
         }
     }
     
+    private void insertNewMobil(int id, String Nama, String Brand, String Warna, String Plat) {
+        try {
+            PreparedStatement statement = connector.prepareStatement("INSERT INTO mobil (id, nama, brand, warna, plat) VALUES (?, ?, ?, ?, ?);");
+            statement.setInt(1, id);
+            statement.setString(2, Nama);
+            statement.setString(3, Brand);
+            statement.setString(4, Warna);
+            statement.setString(5, Plat);
+            statement.executeUpdate();
+            
+            reloadList();
+            statement.close();
+            tambahMobil.setVisible(false);
+            jTabbedPane1.removeTabAt(2);
+        } catch (SQLException sqle) {
+            System.err.printf("Unable to insert new mobil.\n\nReason: %s\n", sqle.getMessage());
+        }
+    }
+    
+    private void dropMobil(int id) {
+        try {
+            PreparedStatement statement = connector.prepareStatement("DELETE FROM mobil WHERE id = ?");
+            statement.setInt(1, id);
+            statement.executeUpdate();
+            statement.close();
+        } catch (SQLException sqle) {
+            System.err.printf("Unable to delete selected mobil.\n\nReason: %s\n", sqle.getMessage());
+        }
+    }
+    
     private void reloadList() {
         PreparedStatement statement;
         try {
-            statement = connector.prepareStatement("SELECT * FROM mobil;");
+            statement = connector.prepareStatement("SELECT * FROM mobil ORDER BY id;");
             results = statement.executeQuery();
             carIndex.clear();
             carData.clear();
@@ -714,6 +770,7 @@ public class MobilJFrame extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTabbedPane jTabbedPane1;
+    private javax.swing.JButton removeButton;
     private javax.swing.JButton restoreEditButton;
     private javax.swing.JPanel tambahMobil;
     // End of variables declaration//GEN-END:variables
